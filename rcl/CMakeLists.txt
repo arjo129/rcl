@@ -13,7 +13,7 @@ find_package(rmw_implementation REQUIRED)
 find_package(rosidl_runtime_c REQUIRED)
 find_package(tracetools REQUIRED)
 
-find_package(evolving_serialization_lib REQUIRED)  # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
+find_package(serialization_support_lib REQUIRED)  # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
 
 include(cmake/rcl_set_symbol_visibility_hidden.cmake)
 include(cmake/get_default_rcl_logging_implementation.cmake)
@@ -34,7 +34,6 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 set(${PROJECT_NAME}_sources
-  src/rcl/rcl_typesupport_runtime_type_introspection_c/identifier.c
   src/rcl/rcl_typesupport_runtime_type_introspection_c/message_introspection.c
 
   src/rcl/arguments.c
@@ -78,7 +77,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # TODO(methylDragon): THIS TARGET_LINK_LIBRARIES IS TEMPORARY! REMOVE EVENTUALLY
 target_link_libraries(${PROJECT_NAME}
-  evolving_serialization_lib::evolving_serialization_lib # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
+  serialization_support_lib::serialization_support_lib # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
 )
 # specific order: dependents before dependencies
 ament_target_dependencies(${PROJECT_NAME}
@@ -122,7 +121,7 @@ ament_export_targets(${PROJECT_NAME})
 
 # specific order: dependents before dependencies
 ament_export_dependencies(ament_cmake)
-ament_export_dependencies(evolving_serialization_lib) # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
+ament_export_dependencies(serialization_support_lib) # TODO(methylDragon): TEMPORARY! REMOVE EVENTUALLY
 ament_export_dependencies(rcl_interfaces)
 ament_export_dependencies(rcl_logging_interface)
 ament_export_dependencies(rcl_yaml_param_parser)

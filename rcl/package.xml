@@ -19,7 +19,7 @@
 
   <build_export_depend>rmw</build_export_depend>
 
-  <depend>evolving_serialization_lib</depend>  <!-- TODO(methylDragon): TEMPORARY. Remove eventually -->
+  <depend>serialization_support_lib</depend>  <!-- TODO(methylDragon): TEMPORARY. Remove eventually -->
   <depend>rcl_interfaces</depend>
   <depend>rcl_logging_interface</depend>
   <depend>rcl_logging_spdlog</depend> <!-- the default logging impl -->

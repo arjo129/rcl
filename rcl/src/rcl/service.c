@@ -134,7 +134,7 @@ rcl_service_init(
     RCL_SET_ERROR_MSG(rmw_get_error_string().str);
     goto fail;
   }
-  
+
   service->impl->service_event_publisher = NULL;
   if (rcl_node_get_options(node)->enable_service_introspection) {
     service->impl->service_event_publisher = allocator->zero_allocate(
@@ -283,17 +283,6 @@ rcl_service_get_service_name(const rcl_service_t * service)
 }
 
 #define _service_get_options(service) & service->impl->options
-
-const char *
-rcl_service_get_service_type_name(const rosidl_service_type_support_t * service_type_support)
-{
-  type_support_map_t * map = (type_support_map_t *)service_type_support->data;
-  // By inspection all of the symbol_name(s) end in the service type name
-  // We can do this because underscores not allowed in service/msg/action names
-  char * service_type_name = strrchr(map->symbol_name[0], '_');
-  service_type_name++;
-  return service_type_name;
-}
 
 const rcl_service_options_t *
 rcl_service_get_options(const rcl_service_t * service)

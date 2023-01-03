@@ -53,7 +53,7 @@ typedef struct rcl_service_options_s
   rcl_allocator_t allocator;
   /// Enable/Disable service introspection features
   bool enable_service_introspection;
-  /// The clock to use for service introspection message timestampes
+  /// The clock to use for service introspection message timestamps
   rcl_clock_t * clock;
 } rcl_service_options_t;
 
@@ -372,15 +372,6 @@ RCL_WARN_UNUSED
 const char *
 rcl_service_get_service_name(const rcl_service_t * service);
 
-/// Get the service type name for the service
-/**
- * TODO(ihasdapie): document this function
- */
-RCL_PUBLIC
-RCL_WARN_UNUSED
-const char *
-rcl_service_get_service_type_name(const rosidl_service_type_support_t * service_type_support);
-
 /// Return the rcl service options.
 /**
  * This function returns the service's internal options struct.
@@ -567,6 +558,18 @@ rcl_service_introspection_configure_server_service_events(
   rcl_node_t * node,
   bool enable);
 
+/// Configure if the payload (server response) is included in service event messages.
+/*
+ * <hr>
+ * Attribute          | Adherence
+ * ------------------ | -------------
+ * Allocates Memory   | No
+ * Thread-Safe        | No
+ * Uses Atomics       | No
+ * Lock-Free          | Yes
+ * \param[in] server The server on which to enable/disable payload for service event messages.
+ * \param[in] enable Whether to enable or disable including the payload in the event message.
+ */
 RCL_PUBLIC
 void
 rcl_service_introspection_configure_server_service_event_message_payload(

@@ -17,13 +17,14 @@ extern "C"
 {
 #endif
 
+#include "rcl/service_event_publisher.h"
+
 #include <string.h>
 
 #include "rcl/service_introspection.h"
 
 #include "./client_impl.h"
 #include "./service_impl.h"
-#include "./service_event_publisher.h"
 
 #include "rcl/allocator.h"
 #include "rcl/macros.h"
@@ -46,67 +47,6 @@ rcl_service_event_publisher_t rcl_get_zero_initialized_service_event_publisher()
   static rcl_service_event_publisher_t null_service_event_publisher = {0};
   return null_service_event_publisher;
 }
-
-/* rcl_ret_t rcl_service_typesupport_to_message_typesupport(
-  const rosidl_service_type_support_t * service_typesupport,
-  rosidl_message_type_support_t ** request_typesupport,
-  rosidl_message_type_support_t ** response_typesupport,
-  const rcl_allocator_t * allocator)
-{
-  rcutils_ret_t ret;
-  type_support_map_t * map = (type_support_map_t *)service_typesupport->data;
-  // TODO(ihasdapie): #define this
-  const char * typesupport_library_fmt = "lib%s__rosidl_typesupport_c.so";
-  const char * service_message_fmt =  // package_name, type name, Request/Response
-    "rosidl_typesupport_c__get_message_type_support_handle__%s__srv__%s_%s";
-
-  const char * service_type_name = rcl_service_get_service_type_name(service_typesupport);
-
-  // build out typesupport library and symbol names
-  char * typesupport_library_name = allocator->allocate(
-    sizeof(char) * ((strlen(typesupport_library_fmt) - 2) + strlen(map->package_name) + 1),
-    allocator->state);
-  char * request_message_symbol = allocator->allocate(
-    sizeof(char) * ((strlen(service_message_fmt) - 6) + strlen(map->package_name) +
-    strlen(service_type_name) + strlen("Request") + 1),
-    allocator->state);
-  char * response_message_symbol = allocator->allocate(
-    sizeof(char) * ((strlen(service_message_fmt) - 6) + strlen(map->package_name) +
-    strlen(service_type_name) + strlen("Request") + 1),
-    allocator->state);
-
-  sprintf(typesupport_library_name, typesupport_library_fmt, map->package_name);
-  sprintf(
-    request_message_symbol, service_message_fmt, map->package_name, service_type_name, "Request");
-  sprintf(
-    response_message_symbol, service_message_fmt, map->package_name, service_type_name, "Response");
-
-  rcutils_shared_library_t typesupport_library = rcutils_get_zero_initialized_shared_library();
-  ret = rcutils_load_shared_library(&typesupport_library, typesupport_library_name, *allocator);
-  if (RCUTILS_RET_OK != ret) {
-    return RCL_RET_ERROR;
-  }
-
-  rosidl_message_type_support_t * (* req_typesupport_func_handle)() =
-    (rosidl_message_type_support_t * (*)())
-    rcutils_get_symbol(&typesupport_library, request_message_symbol);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    req_typesupport_func_handle, "Looking up request type support failed", return RCL_RET_ERROR);
-
-  rosidl_message_type_support_t * (* resp_typesupport_func_handle)() =
-    (rosidl_message_type_support_t * (*)())
-    rcutils_get_symbol(&typesupport_library, response_message_symbol);
-  RCL_CHECK_FOR_NULL_WITH_MSG(
-    resp_typesupport_func_handle, "Looking up response type support failed", return RCL_RET_ERROR);
-
-  *request_typesupport = req_typesupport_func_handle();
-  *response_typesupport = resp_typesupport_func_handle();
-  allocator->deallocate(typesupport_library_name, allocator->state);
-  allocator->deallocate(request_message_symbol, allocator->state);
-  allocator->deallocate(response_message_symbol, allocator->state);
-
-  return RCL_RET_OK;
-} */
 
 rcl_service_event_publisher_options_t
 rcl_service_event_publisher_get_default_options()
@@ -314,20 +254,21 @@ rcl_ret_t rcl_send_service_event_message(
   }
 
   void * service_introspection_message;
+  if (!service_event_publisher->impl->options._content_enabled) {
+    ros_response_request = NULL;
+  }
   switch (event_type) {
     case service_msgs__msg__ServiceEventInfo__REQUEST_RECEIVED:
     case service_msgs__msg__ServiceEventInfo__REQUEST_SENT:
       service_introspection_message =
-        service_event_publisher->impl->service_type_support->introspection_message_create_handle(
-        &info, &allocator, ros_response_request, NULL,
-        service_event_publisher->impl->options._content_enabled);
+        service_event_publisher->impl->service_type_support->event_message_create_handle_function(
+        &info, &allocator, ros_response_request, NULL);
       break;
     case service_msgs__msg__ServiceEventInfo__RESPONSE_RECEIVED:
     case service_msgs__msg__ServiceEventInfo__RESPONSE_SENT:
       service_introspection_message =
-        service_event_publisher->impl->service_type_support->introspection_message_create_handle(
-        &info, &allocator, NULL, ros_response_request,
-        service_event_publisher->impl->options._content_enabled);
+        service_event_publisher->impl->service_type_support->event_message_create_handle_function(
+        &info, &allocator, NULL, ros_response_request);
       break;
     default:
       rcutils_reset_error();
@@ -347,7 +288,7 @@ rcl_ret_t rcl_send_service_event_message(
   }
 
   // clean up
-  service_event_publisher->impl->service_type_support->introspection_message_destroy_handle(
+  service_event_publisher->impl->service_type_support->event_message_destroy_handle_function(
     service_introspection_message, &allocator);
   return RCL_RET_OK;
 }
@@ -360,7 +301,6 @@ rcl_ret_t rcl_service_introspection_enable(
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ERROR);
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_BAD_ALLOC);
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_NODE_INVALID);
-  RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_ALREADY_INIT);
   RCUTILS_CAN_RETURN_WITH_ERROR_OF(RCL_RET_TOPIC_NAME_INVALID);
 
   RCL_CHECK_ARGUMENT_FOR_NULL(service_event_publisher, RCL_RET_INVALID_ARGUMENT);

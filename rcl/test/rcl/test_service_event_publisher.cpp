@@ -377,21 +377,21 @@ TEST_F(
     "test_service_event_publisher", srv_ts);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 
+  // ok to enable twice, starts enabled
   EXPECT_EQ(
-    RCL_RET_ALREADY_INIT, rcl_service_introspection_enable(&service_event_publisher, node_ptr));
+    RCL_RET_OK, rcl_service_introspection_enable(&service_event_publisher, node_ptr));
 
   EXPECT_EQ(RCL_RET_OK, rcl_service_introspection_disable(&service_event_publisher, node_ptr));
 
   EXPECT_EQ(
-    RCL_RET_ALREADY_SHUTDOWN,
+    RCL_RET_OK,
     rcl_service_introspection_disable(&service_event_publisher, node_ptr));
 
   EXPECT_EQ(RCL_RET_OK, rcl_service_introspection_enable(&service_event_publisher, node_ptr));
 
   EXPECT_EQ(
-    RCL_RET_ALREADY_INIT, rcl_service_introspection_enable(&service_event_publisher, node_ptr));
+    RCL_RET_OK, rcl_service_introspection_enable(&service_event_publisher, node_ptr));
 
-  service_event_publisher.impl->options.clock = &clock;
   ret = rcl_service_event_publisher_fini(&service_event_publisher, node_ptr);
   EXPECT_EQ(RCL_RET_OK, ret) << rcl_get_error_string().str;
 }

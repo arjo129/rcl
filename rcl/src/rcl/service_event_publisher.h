@@ -61,15 +61,6 @@ typedef struct rcl_service_event_publisher_s
 
 RCL_PUBLIC
 RCL_WARN_UNUSED
-rcl_ret_t
-rcl_service_typesupport_to_message_typesupport(
-  const rosidl_service_type_support_t * service_typesupport,
-  rosidl_message_type_support_t ** request_typesupport,
-  rosidl_message_type_support_t ** response_typesupport,
-  const rcl_allocator_t * allocator);
-
-RCL_PUBLIC
-RCL_WARN_UNUSED
 rcl_service_event_publisher_options_t
 rcl_service_event_publisher_get_default_options();
 
